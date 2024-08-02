@@ -1,0 +1,224 @@
+a {
+    cursor: pointer;
+}
+
+i {
+    cursor: pointer;
+}
+
+body {
+    min-height: 100vh;
+    background-image: url('back4.png');
+    background-size: cover; 
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-attachment: fixed; 
+    color: hsl(252, 100%, 65%);
+    overflow: hidden;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 80%;
+    margin: 0 auto;
+}
+
+nav {
+    width: 100%;
+    background-color: hsl(252, 30%, 100%);
+    padding: 0.7rem 0;
+    position: fixed;
+    top: 0;
+    z-index: 10;
+}
+
+nav .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.search-bar {
+    background-color: hsl(252, 71%, 92%);
+    border-radius: 2rem;
+    padding: 0.35rem 1rem;
+}
+
+.search-bar input[type="search"] {
+    background: transparent;
+    width: 30vw;
+    margin-left: 1rem;
+    font-size: 1.05rem;
+    color: hsl(252, 30%, 17%);
+    
+}
+
+
+.converter {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    background-color: hsl(252, 90%, 88%);
+    font-size: 14px;
+    color: #555;
+    outline: none;
+    cursor: pointer;
+}
+
+.converter option {
+    background-color: #fff;
+    color: #333;
+}
+
+.converter::-ms-expand {
+    display: none;
+}
+
+nav .button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.7rem 2.1rem;
+    font-weight: 700;
+    border-radius: 2rem;
+    cursor: pointer;
+    color: white;
+    background-color: hsl(252, 100%, 65%);
+    transition: all 300ms ease;
+    font-size: 0.9rem;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
+
+.link {
+    color: hsl(252, 100%, 65%);
+    cursor: pointer;
+}
+
+.search-icon-btn {
+    background-color: hsl(252, 71%, 92%);
+}
+
+main .left_container {
+    width: 28%;
+    height: 35%;
+    margin-top: 100px;
+    margin-left: 25px;
+    position: fixed;
+    inset: 0;
+    background: hsl(252, 32%, 54%);
+    opacity: 0.5;
+    padding: 1rem 2.5rem;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+    color: white;
+    display: inline-block;
+    font-size: 1.15rem;
+}
+
+.left_container:hover {
+    transform: scale(1.025);
+    background-color: #60349a;
+}
+
+main .date_time {
+    color: rgb(17, 0, 63);
+}
+
+main .temp_max_min {
+    color: rgb(17, 0, 63);
+}
+
+img {
+    width: 80px;
+}
+
+.right_side {
+    width: 1015px;
+    height: 35%;
+    margin-left: 500px;
+    margin-top: 100px;
+    position: fixed;
+    inset: 0;
+    background: hsl(252, 55%, 44%);
+    opacity: 0.5;
+    padding: 1rem 2.5rem;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+main .information_header {
+    color: rgb(169, 150, 217);
+}
+
+main .information {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.right_side:hover {
+    transform: scale(1.025);
+    background-color: hsl(252, 54%, 37%);
+  }
+
+.info-item {
+    font-size: 1.3rem;
+    color: white;
+}
+
+.bottom {
+    width: 1490px;
+    height: 45%;
+    margin-top: 365px;
+    margin-left: 25px;
+    position: fixed;
+    background: hsl(252, 46%, 20%);
+    opacity: 0.5;
+    padding: 1rem 2.5rem;
+    color: white;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.bottom:hover {
+    transform: scale(1.025);
+    background-color: hsl(252, 60%, 15%);
+  }
+
+.forecast {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.forecast-day {
+    text-align: center;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #1a0061;
+    width: 240px;
+    height: 230px;
+    color: white;
+}
+
+.forecast-day img {
+    width: 60px;
+    height: 60px;
+}
+
+.wind_picture img {
+    width: 15px;
+    height: 15px;
+}
+
+.day_temperature {
+    font-size: 1.5rem;
+}
+

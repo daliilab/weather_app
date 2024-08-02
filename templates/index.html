@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyCast</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='reset.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel='stylesheet' href='https://unicons.iconscout.com/release/v4.0.0/css/line.css'>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='w2.png') }}">
+</head>
+
+<body>
+    <nav>
+        <div class="container"> 
+            <div class="nav_logo">
+                <a href="/">
+                    <img src="{{ url_for('static', filename='newer.png') }}" alt="Logo">
+                </a>
+            </div>
+            <form action="/search" method="get">
+                <div class="search-bar" >
+                    <button type="submit" class="search-icon-btn" >
+                        <i class="uil uil-search" onclick="document.getElementById('search-form').submit()"></i>
+                    </button>
+                    <input type="search" name="city" placeholder="Enter City" required>
+                    <select class="converter" id="converter" name="units">
+                        <option value="metric"> °C </option>
+                        <option value="imperial"> °F </option>
+                    </select>
+                </div>
+            </form>
+            <div class="button">
+                <a>
+                    <i class='uil uil-map-marker'></i>
+                </a>
+                <button class="btn" id="location-btn">{{weather.city}}, {{weather.country_code}}</button>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class= "left_container"> 
+            {% if weather %}
+                <p class="date_time">{{ current_datetime }}</p>
+                <h2>{{ weather.city }}</h2>
+                <img src="{{ url_for('static', filename='icons/' + weather.icon) }}" alt="weather icon">
+                <p>- {{ weather.description }} -</p>
+                <h2>{{ weather.temperature }}{{unit}}</h2>
+                <p class="temp_max_min">H: {{weather.temp_max}}{{unit}} L: {{ weather.temp_min}}{{unit}}</p>
+            {% else %}
+                <p>City not found.</p>
+            {% endif %}
+            <script src="script.js"></script>
+        </div>
+
+        <div class="right_side" >
+            <h2 class="information_header">Additional information</h2>
+            <br>
+            <div class="information">
+                <div class="info-item">
+                    <img src="{{ url_for('static', filename='sunrise.png') }}" alt="Sunrise">
+                    <p>Sunrise: {{ weather.sunrise }}</p>
+                </div>
+                <div class="info-item">
+                    <img src="{{ url_for('static', filename='feels_like.png') }}" alt="Feels like">
+                    <p>Feels Like: {{ weather.feels_like }}{{unit}}</p>
+                </div>
+                <div class="info-item">
+                    <img src="{{ url_for('static', filename='humidity.png') }}" alt="Humidity">
+                    <p>Humidity: {{ weather.humidity }}%</p>
+                </div>
+                <div class="info-item">
+                    <img src="{{ url_for('static', filename='wind.png') }}" alt="Wind Speed">
+                    <p>Wind Speed: {{ weather.wind_speed }}{{ wind_speed_unit }}</p>
+                </div>
+                <div class="info-item">
+                    <img src="{{ url_for('static', filename='sunset.png') }}" alt="Sunset">
+                    <p>Sunset: {{ weather.sunset }}</p>
+                </div>
+            </div>
+            <script src="script.js"></script>
+        </div>
+
+        <div class="bottom" >
+            <h2 class="forecast_title">5-Day Forecast</h2>
+            <br>
+            <div class="forecast">
+                {% for day in forecast %}
+                    <div class="forecast-day">
+                        <img src="{{ url_for('static', filename='icons/' + day.icon) }}" alt="{{ day.description }}">
+                        <h3>{{ day.date }}</h3>
+                        <br>
+                        <p class="day_temperature">{{ day.temperature }}{{unit}}</p>
+                        <br>
+                        <p class="wind_picture">
+                        <img src="{{ url_for('static', filename='wind.png') }}" alt="Wind Speed">
+                        {{day.wind_speed}}{{wind_speed_unit}}
+                        <img src="{{ url_for('static', filename='humidity.png') }}" alt="Humidity"> {{day.humidity}}%
+                        </p>
+                        <p>- {{ day.description }} -</p>
+                    </div>
+                {% endfor %}
+            </div>
+            <script src="script.js"></script>
+        </div>
+    </main>
+</body>
+</html>

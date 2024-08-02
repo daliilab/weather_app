@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyCast</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='reset.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel='stylesheet' href='https://unicons.iconscout.com/release/v4.0.0/css/line.css'>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='w2.png') }}">
+</head>
+
+<body>
+    <nav>
+        <div class="container"> 
+            <div class="nav_logo">
+                <a>
+                    <img src="static/newer.png" alt="Logo">
+                </a>
+            </div>
+            <form class="search-bar" action="/search" method="GET">
+                <button type="submit" class="search-icon-btn">
+                    <i class="uil uil-search"></i>
+                </button>
+                <input type="search" name="city" placeholder="Enter City">
+                <select class="converter" id="converter">
+                    <option value="metric"> °C </option>
+                    <option value="imperial"> °F </option>
+                </select>
+            </form>
+            <div class="button">
+                <a>
+                    <i class='uil uil-map-marker'></i>
+                </a>
+                <button class="btn" id="location-btn">Sarajevo, BA</button>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class= "left_container"> 
+            <script src="script.js"></script>
+        </div>
+
+        <div class="right_side" >
+            <h2 class="information_header">Additional information</h2>
+            <br>
+            <script src="script.js"></script>
+        </div>
+
+        <div class="bottom" >
+            <h2 class="forecast_title">5-Day Forecast</h2>
+            <br>
+            <script src="script.js"></script>
+        </div>
+    </main>
+</body>
+</html>
