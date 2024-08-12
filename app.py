@@ -1,11 +1,15 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 from pytz import timezone
-from timezonefinder import TimezoneFinder  
+from timezonefinder import TimezoneFinder
 from dotenv import load_dotenv
 import os
+from sqlalchemy import create_engine, Column, Integer, String, Float, Date
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -37,18 +41,14 @@ icon_mapping = {
 def convert_temperature(temp, units):
     if units == 'metric':
         return temp  
-    elif units == 'imperial':
-        return round(temp * 1.8 + 32) 
     else:
-        return temp  
+        return round(temp * 1.8 + 32) 
     
 def convert_wind_speed(speed, units):
     if units == 'metric':
         return speed
-    elif units == 'imperial':
-        return round(speed * 2.237)  
     else:
-        return speed  
+        return round(speed * 2.237)  
 
 def get_weather(city, units):
     weather_url = f"{CURRENT_WEATHER_URL}appid={os.getenv('API_KEY')}&q={city}&units={units}"
@@ -90,62 +90,74 @@ def extract_forecast_data(forecast_data, units):
             })
     return forecast_list[:5]  
 
+DATABASE_URL = 'sqlite:///weather_data.db'  
+
+engine = create_engine(DATABASE_URL)
+Session = sessionmaker(bind=engine)
+session = Session()
+Base = declarative_base()
+
+class Weather(Base):
+    __tablename__ = 'weather'
+    
+    id = Column(Integer, primary_key=True)
+    city = Column(String, nullable=False)
+    date = Column(Date, nullable=False)
+    temperature = Column(Float, nullable=False)
+    humidity = Column(Float, nullable=False)
+    wind_speed = Column(Float, nullable=False)
+    
+    def __repr__(self):
+        return f"<Weather(city={self.city}, date={self.date}, temperature={self.temperature}, humidity={self.humidity}, wind_speed={self.wind_speed})>"
+
+Base.metadata.create_all(engine)
+
+def load_historical_data():
+    start_date = datetime(2023, 8, 1)
+    end_date = datetime(2023, 9, 30)
+    dates = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+
+    data = {
+        'city': [],
+        'date': [],
+        'temperature': [],
+        'humidity': [],
+        'wind_speed': []
+    }
+
+    for date in dates:
+        for city in ['Sarajevo', 'Mostar']:
+            data['city'].append(city)
+            data['date'].append(date.date())
+            temp = round(20 + 10 * (0.5 - (date - start_date).days / (end_date - start_date).days), 1)
+            humidity = round(50 + 20 * (0.5 - (date - start_date).days / (end_date - start_date).days), 1)
+            wind_speed = round(5 + 3 * (0.5 - (date - start_date).days / (end_date - start_date).days), 1)
+            data['temperature'].append(temp)
+            data['humidity'].append(humidity)
+            data['wind_speed'].append(wind_speed)
+
+    df = pd.DataFrame(data)
+
+    df.to_csv('mock_weather_data.csv', index=False)
+
+    for _, row in df.iterrows():
+        weather = Weather(
+            city=row['city'],
+            date=pd.to_datetime(row['date']),
+            temperature=row['temperature'],
+            humidity=row['humidity'],
+            wind_speed=row['wind_speed']
+        )
+        session.add(weather)
+    session.commit()
 
 @app.route('/')
 def home():
-    city = 'Sarajevo'
-    units = 'metric'
-    unit_symbol = '°C' if units == 'metric' else '°F'
-    wind_speed_unit = 'm/s' if units == 'metric' else 'mph'
-    data = get_weather(city, units)
-    forecast_data = get_forecast(city, units)
-    forecast = extract_forecast_data(forecast_data, units)
+    city = 'Sarajevo'  
+    units = 'metric' 
 
-    if data["cod"] != "404":  
-        icon_code = data['weather'][0]['icon']
-        icon_filename = icon_mapping.get(icon_code, 'default.png')
-        
-
-        lat, lon = data['coord']['lat'], data['coord']['lon']
-        tz_name = get_time_zone(lat, lon)
-        city_time_zone = tz_name if tz_name else 'UTC'
-        
-        sunrise = convert_to_local_time(data['sys']['sunrise'], city_time_zone)
-        sunset = convert_to_local_time(data['sys']['sunset'], city_time_zone)
-        local_time = datetime.now(pytz.timezone(city_time_zone)).strftime("%d-%m-%Y | %H:%M:%S")
-
-        wind_speed = convert_wind_speed(data['wind']['speed'], units)
-        temperature = convert_temperature(data['main']['temp'], units)
-        temp_max = convert_temperature(data['main']['temp_max'], units)
-        temp_min = convert_temperature(data['main']['temp_min'], units)
-        feels_like = convert_temperature(data['main']['feels_like'], units)
-
-        weather = {
-            'city': data['name'],
-            'country_code': data['sys']['country'],  
-            'icon': icon_filename,
-            'description': data['weather'][0]['description'],
-            'temperature': round(temperature),
-            'temp_max': round(temp_max),
-            'temp_min': round(temp_min),
-            'sunrise': sunrise,
-            'feels_like': round(feels_like),
-            'humidity': data['main']['humidity'],
-            'wind_speed': wind_speed,
-            'sunset': sunset
-        }
-    else:
-        weather = None
-        local_time = None
-
-    return render_template('index.html', weather=weather, current_datetime=local_time, forecast=forecast, unit=unit_symbol, wind_speed_unit=wind_speed_unit)
-
-@app.route('/search', methods=['GET'])
-def search():
-    city = request.args.get('city')
-    units = request.args.get('units', 'metric')
-    unit_symbol = '°C' if units == 'metric' else '°F'
-    wind_speed_unit = 'm/s' if units == 'metric' else 'mph'
+    unit_symbol = '°C'
+    wind_speed_unit = 'm/s'
 
     data = get_weather(city, units)
     forecast_data = get_forecast(city, units)
@@ -158,7 +170,7 @@ def search():
         lat, lon = data['coord']['lat'], data['coord']['lon']
         tz_name = get_time_zone(lat, lon)
         city_time_zone = tz_name if tz_name else 'UTC'
-
+        
         sunrise = convert_to_local_time(data['sys']['sunrise'], city_time_zone)
         sunset = convert_to_local_time(data['sys']['sunset'], city_time_zone)
         local_time = datetime.now(pytz.timezone(city_time_zone)).strftime("%d-%m-%Y | %H:%M:%S")
@@ -171,7 +183,7 @@ def search():
 
         weather = {
             'city': data['name'],
-            'country_code': data['sys']['country'], 
+            'country_code': data['sys']['country'],
             'icon': icon_filename,
             'description': data['weather'][0]['description'],
             'temperature': round(temperature),
@@ -187,8 +199,70 @@ def search():
         weather = None
         local_time = None
 
-    return render_template('index.html', weather=weather, current_datetime=local_time, forecast=forecast, unit=unit_symbol, wind_speed_unit=wind_speed_unit)
+    show_comparison_button = city in ['Sarajevo', 'Mostar']
+
+    return render_template('index.html', weather=weather, current_datetime=local_time, forecast=forecast, unit=unit_symbol, wind_speed_unit=wind_speed_unit, show_comparison_button=show_comparison_button)
+
+
+@app.route('/search', methods=['GET'])
+def search():
+    city = request.args.get('city')
+    units = request.args.get('units')
+
+    if city:
+        unit_symbol = '°C' if units == 'metric' else '°F'
+        wind_speed_unit = 'm/s' if units == 'metric' else 'mph'
+
+        data = get_weather(city, units)
+        forecast_data = get_forecast(city, units)
+        forecast = extract_forecast_data(forecast_data, units)
+
+        if data["cod"] != "404":
+            icon_code = data['weather'][0]['icon']
+            icon_filename = icon_mapping.get(icon_code, 'default.png')
+            
+            lat, lon = data['coord']['lat'], data['coord']['lon']
+            tz_name = get_time_zone(lat, lon)
+            city_time_zone = tz_name if tz_name else 'UTC'
+            
+            sunrise = convert_to_local_time(data['sys']['sunrise'], city_time_zone)
+            sunset = convert_to_local_time(data['sys']['sunset'], city_time_zone)
+            local_time = datetime.now(pytz.timezone(city_time_zone)).strftime("%d-%m-%Y | %H:%M:%S")
+
+            wind_speed = convert_wind_speed(data['wind']['speed'], units)
+            temperature = convert_temperature(data['main']['temp'], units)
+            temp_max = convert_temperature(data['main']['temp_max'], units)
+            temp_min = convert_temperature(data['main']['temp_min'], units)
+            feels_like = convert_temperature(data['main']['feels_like'], units)
+
+            weather = {
+                'city': data['name'],
+                'country_code': data['sys']['country'],
+                'icon': icon_filename,
+                'description': data['weather'][0]['description'],
+                'temperature': round(temperature),
+                'temp_max': round(temp_max),
+                'temp_min': round(temp_min),
+                'sunrise': sunrise,
+                'feels_like': round(feels_like),
+                'humidity': data['main']['humidity'],
+                'wind_speed': wind_speed,
+                'sunset': sunset
+            }
+        else:
+            weather = None
+            local_time = None
+
+        show_comparison_button = city.title() in ['Sarajevo', 'Mostar']
+
+        return render_template('index.html', weather=weather, current_datetime=local_time, forecast=forecast, unit=unit_symbol, wind_speed_unit=wind_speed_unit, show_comparison_button=show_comparison_button)
+    else:
+        return redirect('/')
+
+
+
+
 
 if __name__ == '__main__':
+    configure()
     app.run(debug=True)
-
